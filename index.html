@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+</head>
+<body>
+
+<canvas id="gameApp" width="800" height="600"></canvas>
+
+<script>
+    var canvas;
+    var canvasContext;
+
+    var ballX = 50, 
+        ballY = 50,
+        ballRadious = 10;
+
+    var paddleY = 10;
+    var paddleP2Y = 10;
+
+    const PADDLE_HEIGHT = 100,
+          PADDLE_WIDTH = 10;
+
+    var ballSpeedX = 10,
+        ballSpeedY = 10;
+
+    var playerScore = 0,
+        player2Score = 0; // enemy ai
+
+    var isGamePaused = false,
+        isGameOver = false;
+
+    window.onload = function () {
+        
+        canvas = document.getElementById("gameApp");
+        canvasContext = canvas.getContext("2d");
+
+        var frameRate = 30;        
+        setInterval(function(){
+                moveEverything();
+                drawEverything();
+        }, 1000/frameRate);
+        
+        canvas.addEventListener("mousedown", handleMouseClick);
+
+        canvas.addEventListener('mousemove', function(evt){
+            var mousePos = calculateMousePos(evt);
+            paddleY = mousePos.y - PADDLE_HEIGHT/2;
+        });
+
+    }
+
+    function handleMouseClick(evt) {
+        if (isGamePaused) {
+            isGamePaused = false;
+        } else if(isGameOver){
+            isGameOver = false;
+            playerScore = 0;
+            player2Score = 0;
+        }else {
+            isGamePaused = true;   
+        }
+    }
+
+    function computerMove(){
+        //var computerSpeed = Math.random() * 5;
+
+        if (paddleP2Y + PADDLE_HEIGHT/2 < ballY - 35) {
+            paddleP2Y += 10;
+        } else if(paddleP2Y + PADDLE_HEIGHT/2 > ballY + 35) {
+            paddleP2Y -= 10;
+        }
+    }
+
+    function moveEverything(){
+        if (isGamePaused || isGameOver) {
+            return;
+        }
+
+       computerMove();
+
+        ballMove();
+        ballX = ballX + ballSpeedX;
+        ballY = ballY + ballSpeedY;
+    }
+
+    function drawEverything(){
+        //console.log("hello world");
+        // background
+        rectDraw(0, 0, canvas.width, canvas.height, "black");
+
+        if (isGamePaused) {
+            canvasContext.fillStyle = "white";
+            canvasContext.fillText("Game Pause", 350, 200);
+            canvasContext.fillText("Click to Continue", 350, 400);
+            return;
+        }else if(isGameOver){
+            canvasContext.fillStyle = "white";
+            canvasContext.fillText("Game Over", 350, 200);
+            if (playerScore > player2Score) {
+                canvasContext.fillText("Player 1 wins", 350, 230);  
+                canvasContext.fillText("Player 1 score "+ playerScore, 350, 260);    
+            } else {
+                canvasContext.fillText("Player 2 wins", 350, 230);
+                canvasContext.fillText("Player 2 score "+ playerScore, 350, 260);
+            }
+            
+            canvasContext.fillText("Click to restart", 350, 400);
+            return;
+        }
+
+        canvasContext.fillStyle = "white";
+        canvasContext.fillText("Player score "+ playerScore, 100, 100);
+        canvasContext.fillText("Player 2 score "+ player2Score, 500, 100);
+
+        // player paddle
+        rectDraw(0, paddleY, PADDLE_WIDTH, PADDLE_HEIGHT, "white");
+
+        // enemy paddle
+        rectDraw(canvas.width-PADDLE_WIDTH, paddleP2Y, PADDLE_WIDTH, PADDLE_HEIGHT, "white");
+
+        //ball 
+        ballDraw(ballX, ballY, ballRadious, "red");
+
+    }
+
+    function rectDraw(leftX, topY, width, height, colour){
+        canvasContext.fillStyle = colour;
+        canvasContext.fillRect(leftX, topY, width, height);
+    }
+
+    function ballDraw(centerX, centerY, radious, colour){
+        canvasContext.fillStyle = colour;
+        canvasContext.beginPath();
+        canvasContext.arc(centerX, centerY, radious, 0, Math.PI*2, true);
+        canvasContext.fill();
+    }
+
+    function ballMove(){
+        //right coner
+        if (ballX + ballRadious >= canvas.width){
+            ballSpeedX = -ballSpeedX;
+
+        // left edge befor paddle
+        }else if (ballX - ballRadious <= PADDLE_WIDTH ){
+            if (ballY + ballRadious < paddleY || 
+                ballY - ballRadious > paddleY + PADDLE_HEIGHT) {
+                // misses the paddle
+                ballReset(); // reset posiiton
+            }else{
+                // hits the paddle
+                playerScore += 1;
+
+                // change the dirction of the ball depending on the location it hits the paddle.
+                var deltaY = ballY - (paddleY + PADDLE_HEIGHT/2)
+                ballSpeedY = deltaY * 0.35;
+
+            }
+            ballSpeedX = -ballSpeedX;
+
+        }else if (ballX - ballRadious < 0) {
+            // left edge where the paddle is
+            ballSpeedX = -ballSpeedX;
+            ballReset(); // reset posiiton
+        }
+
+        //bottom area
+        if (ballY + ballRadious >= canvas.height){
+            ballSpeedY = -ballSpeedY;
+
+        //enemy paddle area
+        }else if (ballX + ballRadious >= canvas.width){
+            ballReset(); // reset posiiton
+    
+        }else if (ballX + ballRadious >= canvas.width - PADDLE_WIDTH ){
+
+            if (ballY + ballRadious < paddleP2Y || 
+                ballY - ballRadious > paddleP2Y + PADDLE_HEIGHT) {
+                // misses the paddle
+                ballReset(); // reset posiiton
+            }else{
+                // hits the paddle
+                player2Score += 1;
+
+                // change the dirction of the ball depending on the location it hits the paddle.
+                var deltaY = ballY - (paddleP2Y + PADDLE_HEIGHT/2);
+                ballSpeedY = deltaY * 0.35;
+
+            }
+            ballSpeedX = -ballSpeedX;
+        
+        //top
+        }else if (ballY - ballRadious <= 0) {
+            ballSpeedY = -ballSpeedY;
+        } 
+    }
+
+    function calculateMousePos(evt) {
+        var rect = canvas.getBoundingClientRect();
+        var root = document.documentElement;
+        var mouseX = evt.clientX - rect.left - root.scrollLeft;
+        var mouseY = evt.clientY - rect.top - root.scrollTop;
+        return {
+            x:mouseX,
+            y:mouseY
+        };
+    }
+
+    function ballReset(){
+        isGameOver = true;
+        ballX = canvas.width / 2;
+        ballY = canvas.height / 2;
+    }
+
+</script>
+
+</body>
+</html>
