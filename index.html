@@ -99,10 +99,13 @@
             canvasContext.fillText("Game Over", 350, 200);
             if (playerScore > player2Score) {
                 canvasContext.fillText("Player 1 wins", 350, 230);  
-                canvasContext.fillText("Player 1 score "+ playerScore, 350, 260);    
-            } else {
+                canvasContext.fillText("Player 1 score "+ playerScore, 350, 260); 
+            } else if(player2Score > playerScore)  {
                 canvasContext.fillText("Player 2 wins", 350, 230);
                 canvasContext.fillText("Player 2 score "+ playerScore, 350, 260);
+            }else{
+                canvasContext.fillText("Match draw", 350, 230);
+                canvasContext.fillText("Both Players score "+ playerScore, 350, 260);
             }
             
             canvasContext.fillText("Click to restart", 350, 400);
@@ -146,6 +149,7 @@
             if (ballY + ballRadious < paddleY || 
                 ballY - ballRadious > paddleY + PADDLE_HEIGHT) {
                 // misses the paddle
+                player2Score += 1;
                 ballReset(); // reset posiiton
             }else{
                 // hits the paddle
@@ -161,6 +165,7 @@
         }else if (ballX - ballRadious < 0) {
             // left edge where the paddle is
             ballSpeedX = -ballSpeedX;
+            player2Score += 1;
             ballReset(); // reset posiiton
         }
 
@@ -170,6 +175,7 @@
 
         //enemy paddle area
         }else if (ballX + ballRadious >= canvas.width){
+            playerScore += 1;
             ballReset(); // reset posiiton
     
         }else if (ballX + ballRadious >= canvas.width - PADDLE_WIDTH ){
@@ -177,6 +183,7 @@
             if (ballY + ballRadious < paddleP2Y || 
                 ballY - ballRadious > paddleP2Y + PADDLE_HEIGHT) {
                 // misses the paddle
+                playerScore += 1;
                 ballReset(); // reset posiiton
             }else{
                 // hits the paddle
