@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+</head>
+<body>
+
+<canvas id="gameApp" width="600" height="400">
+    Html5 canvas not supported
+</canvas>
+
+<script>
+    var canvas;
+    var canvasContext;
+
+    var snake = [];
+    var sspx = sspy = 10;
+    var snakeLength = 5;
+    var snakewidth = snakehight = 10;
+
+    var dirx = 1,
+        diry = 0;
+    var sspeedx = sspeedy = 9;
+
+    var applepx = applepy = 50;
+    var applewidth = applehight = 15;
+
+    window.onload = function () {
+        
+        canvas = document.getElementById("gameApp");
+        canvasContext = canvas.getContext("2d");
+
+        applepx = Math.floor(Math.random()*canvas.width);
+        applepy = Math.floor(Math.random()*canvas.height);
+        console.log(applepx);
+        console.log(applepy);
+        var frameRate = 15;        
+        setInterval(function(){
+                moveEverything();
+                drawEverything();
+        }, 1000/frameRate);
+
+        document.addEventListener("keydown", keyPress);
+    }
+
+    function drawEverything() {
+
+        // background
+        canvasContext.fillStyle = "black";
+        canvasContext.fillRect(0,0, canvas.width, canvas.height);
+
+        drawApple();
+        drawSnake();
+
+    }
+
+    function moveEverything() {
+        // move snake
+        sspx += sspeedx * dirx;
+        sspy += sspeedy * diry;
+
+        if (sspx >= canvas.width) {
+            sspx = 0;
+        }else if (sspx < 0) {
+            sspx = canvas.width;
+        }else if (sspy >= canvas.height) {
+            sspy = 0;
+        }else if(sspy < 0){
+            sspy = canvas.height;
+        }
+
+    }
+
+    function drawSnake() {
+        canvasContext.fillStyle = "white";
+        for (var i = 0; i < snake.length; i++){
+            canvasContext.fillRect(snake[i].x, snake[i].y, snakewidth, snakehight);
+
+            if (snake[i].x == sspx+snakewidth/2 && snake[i].y == sspy+snakehight/2) {
+                console.log("over.");
+                snakeLength = 5;
+            }
+        }
+        // canvasContext.fillRect(sspx, sspy, 10, 10);
+        snake.push({x:sspx+snakewidth/2, y: sspy+snakehight/2});
+        while (snake.length > snakeLength) {
+            snake.shift();
+        }
+
+    }
+
+    function drawApple() {
+        canvasContext.fillStyle = "red";
+
+        if (applepx+applewidth >= sspx && 
+            (applepx <= sspx || applepx <= sspx+snakewidth) &&
+            (applepy <= sspy || applepy <= sspy + snakehight) && 
+            applepy+applehight >= sspy) {
+
+            console.log("hit");
+            snakeLength ++;
+            applepx = Math.abs(Math.floor(Math.random()*canvas.width-applewidth*2));
+            applepy = Math.abs(Math.floor(Math.random()*canvas.height-applehight*2));
+        }
+        // else{
+        //     console.log(applepx, sspx , applepy , sspy);
+        //     console.log(applepx+applewidth >= sspx , applepx <= sspx ,applepy <= sspy , applepy+applehight >= sspy);
+        // }
+
+        canvasContext.fillRect(applepx, applepy, applewidth, applehight);
+    }
+
+
+    function keyPress(evt) {
+        var KEY = {
+            "LEFT": 37,
+            "UP": 38,
+            "RIGHT": 39,
+            "DOWN": 40,
+        }
+        switch (evt.keyCode) {
+            case KEY.LEFT:
+                dirx=-1;
+                diry=0;
+                break;
+        
+            case KEY.UP:
+                dirx=0;
+                diry=-1;
+                break;
+        
+            case KEY.RIGHT:
+                dirx=1;
+                diry=0;
+                break;
+        
+            case KEY.DOWN:
+                dirx=0;
+                diry=1;
+                break;
+        }
+    }
+</script>
+
+</body>
+
+</html>
